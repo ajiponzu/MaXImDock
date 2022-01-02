@@ -25,9 +25,17 @@
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <wil/cppwinrt_helpers.h>
 
+#include <vector>
 #include <microsoft.ui.xaml.window.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Windows.UI.Core.h>
+#include <winrt/Microsoft.UI.Interop.h>
+#include <winrt/Windows.Storage.h>
+#include <winrt/Windows.Storage.Search.h>
+#include <winrt/Windows.Storage.Streams.h>
+#include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
+#include <winrt/Windows.System.h>
+#include <winrt/Windows.Data.Json.h>
 
 namespace winrt
 {
@@ -39,4 +47,6 @@ namespace winrt
     using namespace Windows::Graphics;
     using namespace Windows::Foundation;
     using namespace Windows::Foundation::Collections;
+    using namespace Windows::Data::Json;
+    using namespace Windows::Storage;
 }
