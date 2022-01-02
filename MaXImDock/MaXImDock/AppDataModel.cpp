@@ -66,5 +66,17 @@ namespace MaXImDockModel
 			folderLink.m_alias = object.GetNamedString(L"alias");
 			s_folderLinkList.push_back(folderLink);
 		}
+
+        winrt::BitmapImage bitmap{};
+		for (const auto& appData : s_appDataList)
+		{
+			auto& icon = appData.m_appIcon;
+			auto imagefile = co_await picturesfolder.GetFileAsync(appData.m_iconPath);
+			winrt::IRandomAccessStream stream{ co_await imagefile.OpenAsync(winrt::Windows::Storage::FileAccessMode::Read) };
+			bitmap.SetSource(stream);
+			icon.Source(bitmap);
+			icon.MaxWidth(65);
+			icon.MaxHeight(65);
+		}
 	}
 }

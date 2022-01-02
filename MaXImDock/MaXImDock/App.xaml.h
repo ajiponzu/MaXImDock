@@ -21,6 +21,7 @@ namespace winrt::MaXImDock::implementation
         void OnLaunched(Microsoft::UI::Xaml::LaunchActivatedEventArgs const&);
 
     private:
+        winrt::IAsyncAction InitSystem();
         void GetAppWindowForCurrentWindow();
         void SetWindowSizeAndPos();
         void SetWindowStyle();

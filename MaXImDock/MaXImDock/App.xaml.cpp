@@ -44,8 +44,14 @@ App::App()
 /// <param name="e">Details about the launch request and process.</param>
 void App::OnLaunched(LaunchActivatedEventArgs const&)
 {
-	m_window = make<MainWindow>();
+	InitSystem();
+}
 
+winrt::IAsyncAction winrt::MaXImDock::implementation::App::InitSystem()
+{
+	co_await MaXImDockModel::AppDataModel::ReadSettingJson();
+
+	m_window = make<MainWindow>();
 	GetAppWindowForCurrentWindow();
 	SetWindowStyle();
 	SetWindowSizeAndPos();
@@ -58,10 +64,9 @@ void winrt::MaXImDock::implementation::App::GetAppWindowForCurrentWindow()
 {
 	winrt::com_ptr<IWindowNative> windowNative = m_window.as<IWindowNative>();
 
-	HWND hWnd;
-	windowNative->get_WindowHandle(&hWnd);
+	windowNative->get_WindowHandle(&m_hwnd);
 	winrt::WindowId windowId;
-	windowId = winrt::GetWindowIdFromWindow(hWnd);
+	windowId = winrt::GetWindowIdFromWindow(m_hwnd);
 	m_appWindow = Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId);
 }
 

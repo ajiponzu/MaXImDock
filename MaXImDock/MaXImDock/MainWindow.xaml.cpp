@@ -4,6 +4,8 @@
 #include "MainWindow.g.cpp"
 #endif
 
+#include "AppDataModel.h"
+
 using namespace winrt;
 using namespace Microsoft::UI::Xaml;
 
