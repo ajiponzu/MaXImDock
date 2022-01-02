@@ -32,23 +32,28 @@ namespace winrt::MaXImDock::implementation
 
 	void MainWindow::InitViewControls()
 	{
-		auto items = gridIcons().Items();
+		/* アプリアイコンの設定・設置 */
+		auto items = gridIcons().Items(); // GridViewコントロールのItemCollectionを取得. Appendするとデータも見た目的にも追加される
 		for (const auto& appIcon : MaXImDockModel::AppDataModel::GetAppIconList())
 		{
 			winrt::Button button{};
+			/* クリックイベントのラムダ式を定義 */ // 簡単に書けるだけでなく, 処理の自由度も高い
 			auto clickEventHandler = [&](winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
 			{
 				::ShellExecuteW(0, L"Open", L"explorer.exe", appIcon.m_exePath.c_str(), L"", SW_SHOW);
 			};
+			/* end */
 			Image image{};
-			image.Source(appIcon.m_appIcon);
+			image.Source(appIcon.m_appIcon); // 保存していたbitmapimageをソースとする. Imageはコントロールのため, sharedできないのでbitmapまでを作成し保存した
 			image.MaxWidth(65);
 			image.MaxHeight(65);
 			button.Content(image);
-			button.Click(clickEventHandler);
-			items.Append(button);
+			button.Click(clickEventHandler); // クリックイベントの登録
+			items.Append(button); // GridViewに追加. これを忘れると変更が適用されない
 		}
+		/* end */
 
+		/* フォルダリンク設定・設置 */
 		items = folderLinks().Items();
 		for (const auto& folderLink : MaXImDockModel::AppDataModel::GetFolderLinkList())
 		{
@@ -58,9 +63,10 @@ namespace winrt::MaXImDock::implementation
 			{
 				::ShellExecuteW(0, L"Open", L"explorer.exe", folderLink.m_linkPath.c_str(), L"", SW_SHOW);
 			};
-			button.Content(box_value(text));
+			button.Content(box_value(text)); // box_valueはおそらくただの文字列をText系のコントロールに変換してくれると思われる. 
 			button.Click(clickEventHandler);
 			items.Append(button);
 		}
+		/* end */
 	}
 }

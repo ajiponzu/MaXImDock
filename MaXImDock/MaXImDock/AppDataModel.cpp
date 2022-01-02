@@ -43,6 +43,7 @@ namespace MaXImDockModel
 			co_await appfolder.CreateFileAsync(g_folderSettingPath);
 		/* end */
 
+		/* アプリアイコン設定ファイル読み込み */
 		auto appSettingFile = co_await appfolder.GetFileAsync(g_appSettingPath);
 		auto texts = co_await winrt::FileIO::ReadTextAsync(appSettingFile);
 		auto appJson = winrt::JsonObject::Parse(texts);
@@ -58,7 +59,9 @@ namespace MaXImDockModel
 			appIconData.m_appIcon.SetSource(stream);
 			s_appDataList.push_back(appIconData);
 		}
+		/* end */
 
+		/* フォルダリンク設定ファイル読み込み */
 		auto folderSettingFile = co_await appfolder.GetFileAsync(g_folderSettingPath);
 		texts = co_await winrt::FileIO::ReadTextAsync(folderSettingFile);
 		appJson = winrt::JsonObject::Parse(texts);
@@ -71,5 +74,6 @@ namespace MaXImDockModel
 			folderLink.m_alias = object.GetNamedString(L"alias");
 			s_folderLinkList.push_back(folderLink);
 		}
+		/* end */
 	}
 }

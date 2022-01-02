@@ -49,7 +49,7 @@ void App::OnLaunched(LaunchActivatedEventArgs const&)
 
 winrt::IAsyncAction winrt::MaXImDock::implementation::App::InitSystem()
 {
-	co_await MaXImDockModel::AppDataModel::ReadSettingJson();
+	co_await MaXImDockModel::AppDataModel::ReadSettingJson(); // これがそのまま非同期実行されると, UI表示のタイミングとかぶるなどの危険があるため待つ
 
 	m_window = make<MainWindow>();
 	GetAppWindowForCurrentWindow();
@@ -62,51 +62,53 @@ winrt::IAsyncAction winrt::MaXImDock::implementation::App::InitSystem()
 
 void winrt::MaXImDock::implementation::App::GetAppWindowForCurrentWindow()
 {
-	winrt::com_ptr<IWindowNative> windowNative = m_window.as<IWindowNative>();
+	winrt::com_ptr<IWindowNative> windowNative = m_window.as<IWindowNative>(); // win32ネイティブウィンドウの取得
 
-	windowNative->get_WindowHandle(&m_hwnd);
+	windowNative->get_WindowHandle(&m_hwnd); // ウィンドウハンドル取得
 	winrt::WindowId windowId;
 	windowId = winrt::GetWindowIdFromWindow(m_hwnd);
-	m_appWindow = Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId);
+	m_appWindow = Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId); // ウィンドウハンドルとWinUIとの橋渡し?を構築
 }
 
 void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 {
-	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL);
+	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL); // DPI取得
 	m_activateBorderX = m_rcDispRect.right - 1;
 	m_windowRect.Width = static_cast<int32_t>(m_rcDispRect.right * 0.045);
 	m_windowRect.Height = static_cast<int32_t>(m_rcDispRect.bottom * 0.6);
 	m_windowRect.X = static_cast<int32_t>(m_rcDispRect.right - m_windowRect.Width * 2);
 	m_windowRect.Y = static_cast<int32_t>(m_rcDispRect.bottom - m_windowRect.Height);
-	m_appWindow.MoveAndResize(m_windowRect);
+	m_appWindow.MoveAndResize(m_windowRect); // ウィンドウへの変更を適用
 }
 
 void winrt::MaXImDock::implementation::App::SetWindowStyle()
 {
-	OverlappedPresenter customOverlappedPresenter(0);
-	customOverlappedPresenter = OverlappedPresenter::CreateForContextMenu();
-	customOverlappedPresenter.IsAlwaysOnTop(true);
-	m_appWindow.SetPresenter(customOverlappedPresenter);
+	OverlappedPresenter customOverlappedPresenter(0); 
+	customOverlappedPresenter = OverlappedPresenter::CreateForContextMenu(); // 実行中もタスクバーに表示されず, タイトルバーもないようなウィンドウスタイル
+	customOverlappedPresenter.IsAlwaysOnTop(true); // 常に最前面に表示
+	m_appWindow.SetPresenter(customOverlappedPresenter); // ウィンドウスタイル適用
 }
 
 winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitActivateWindow()
 {
 	m_isRunningWaitActivate = true;
-	co_await winrt::resume_background();
+	co_await winrt::resume_background(); // これとforegroundの間の処理はバックグラウンドで処理される.
 
 	POINT mouse_p;
 	::GetCursorPos(&mouse_p);
+	/* ビジーウェイト */
 	while (!(mouse_p.x >= m_activateBorderX && mouse_p.y >= m_windowRect.Y))
 	{
-		Sleep(gSleepTime);
-		::GetCursorPos(&mouse_p);
+		Sleep(gSleepTime); // スリープタイムは, ただの遅延というだけでなく, CPUを休ませる意味もある
+		::GetCursorPos(&mouse_p); 
 	}
+	/* end */
 
-	co_await wil::resume_foreground(m_window.DispatcherQueue());
+	co_await wil::resume_foreground(m_window.DispatcherQueue()); // バックグラウンド処理を終了. UIを操作可能に
 
-	m_window.Activate();
-	Async_WaitHideWindow();
-	m_isRunningWaitActivate = true;
+	m_window.Activate(); // 条件を満たしたためウィンドウを表示
+	Async_WaitHideWindow(); // ウィンドウ非表示待ち処理を起動
+	m_isRunningWaitActivate = false;
 }
 
 winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitHideWindow()
@@ -126,7 +128,7 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 
 	m_appWindow.Hide();
 	Async_WaitActivateWindow();
-	m_isRunningWaitHide = true;
+	m_isRunningWaitHide = false;
 }
 
 winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitAccident()

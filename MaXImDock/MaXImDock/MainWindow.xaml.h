@@ -9,6 +9,10 @@ namespace winrt::MaXImDock::implementation
 
 		int32_t MyProperty();
 		void MyProperty(int32_t value);
+
+		/// <summary>
+		/// xamlコントロールの動的追加
+		/// </summary>
 		void InitViewControls();
 	};
 }
