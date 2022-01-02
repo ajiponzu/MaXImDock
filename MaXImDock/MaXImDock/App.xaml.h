@@ -7,19 +7,20 @@ namespace winrt::MaXImDock::implementation
     struct App : AppT<App>
     {
     private:
-        RECT rcDispRect{};
-        winrt::Windows::Graphics::RectInt32 windowRect{};
-        bool isRunningWaitActivate = false;
-        bool isRunningWaitHide = false;
-        int activateBorderX = 0;
+        winrt::RectInt32 m_windowRect{};
+        ::RECT m_rcDispRect{};
+        bool m_isRunningWaitActivate = false;
+        bool m_isRunningWaitHide = false;
+        int m_activateBorderX = 0;
+        winrt::Microsoft::UI::Xaml::Window m_window{ nullptr };
+        winrt::AppWindow m_appWindow{ nullptr };
+        ::HWND m_hwnd{ nullptr };
     public:
         App();
 
         void OnLaunched(Microsoft::UI::Xaml::LaunchActivatedEventArgs const&);
 
     private:
-        winrt::Microsoft::UI::Xaml::Window window{ nullptr };
-        winrt::AppWindow appWindow{ nullptr };
         void GetAppWindowForCurrentWindow();
         void SetWindowSizeAndPos();
         void SetWindowStyle();

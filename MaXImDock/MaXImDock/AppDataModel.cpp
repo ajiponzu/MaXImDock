@@ -7,10 +7,6 @@ static const winrt::hstring g_folderSettingPath = L"folder_setting.json";
 
 namespace MaXImDockModel
 {
-	winrt::RectInt32 AppDataModel::s_windowRect{};
-	::RECT AppDataModel::s_rcDispRect{};
-	::HWND AppDataModel::s_hwnd{ nullptr };
-	winrt::AppWindow AppDataModel::s_appWindow{ nullptr };
 	std::vector<AppIconData> AppDataModel::s_appDataList{};
 	std::vector<FolderLink> AppDataModel::s_folderLinkList{};
 

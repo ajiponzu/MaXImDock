@@ -2,6 +2,7 @@
 
 #include "App.xaml.h"
 #include "MainWindow.xaml.h"
+#include "AppDataModel.h"
 
 #include <winrt/Microsoft.UI.Interop.h>
 
@@ -43,12 +44,11 @@ App::App()
 /// <param name="e">Details about the launch request and process.</param>
 void App::OnLaunched(LaunchActivatedEventArgs const&)
 {
-	window = make<MainWindow>();
+	m_window = make<MainWindow>();
 
 	GetAppWindowForCurrentWindow();
 	SetWindowStyle();
 	SetWindowSizeAndPos();
-	appWindow.MoveAndResize(windowRect);
 
 	Async_WaitAccident();
 	Async_WaitActivateWindow();
@@ -56,23 +56,24 @@ void App::OnLaunched(LaunchActivatedEventArgs const&)
 
 void winrt::MaXImDock::implementation::App::GetAppWindowForCurrentWindow()
 {
-	winrt::com_ptr<IWindowNative> windowNative = window.as<IWindowNative>();
+	winrt::com_ptr<IWindowNative> windowNative = m_window.as<IWindowNative>();
 
 	HWND hWnd;
 	windowNative->get_WindowHandle(&hWnd);
 	winrt::WindowId windowId;
 	windowId = winrt::GetWindowIdFromWindow(hWnd);
-	appWindow = Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId);
+	m_appWindow = Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId);
 }
 
 void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 {
-	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &rcDispRect, NULL);
-	activateBorderX = rcDispRect.right - 1;
-	windowRect.Width = static_cast<int32_t>(rcDispRect.right * 0.03);
-	windowRect.Height = static_cast<int32_t>(rcDispRect.bottom * 0.6);
-	windowRect.X = static_cast<int32_t>(rcDispRect.right - windowRect.Width * 2);
-	windowRect.Y = static_cast<int32_t>(rcDispRect.bottom - windowRect.Height);
+	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL);
+	m_activateBorderX = m_rcDispRect.right - 1;
+	m_windowRect.Width = static_cast<int32_t>(m_rcDispRect.right * 0.03);
+	m_windowRect.Height = static_cast<int32_t>(m_rcDispRect.bottom * 0.6);
+	m_windowRect.X = static_cast<int32_t>(m_rcDispRect.right - m_windowRect.Width * 2);
+	m_windowRect.Y = static_cast<int32_t>(m_rcDispRect.bottom - m_windowRect.Height);
+	m_appWindow.MoveAndResize(m_windowRect);
 }
 
 void winrt::MaXImDock::implementation::App::SetWindowStyle()
@@ -80,48 +81,47 @@ void winrt::MaXImDock::implementation::App::SetWindowStyle()
 	OverlappedPresenter customOverlappedPresenter(0);
 	customOverlappedPresenter = OverlappedPresenter::CreateForContextMenu();
 	customOverlappedPresenter.IsAlwaysOnTop(true);
-	appWindow.SetPresenter(customOverlappedPresenter);
+	m_appWindow.SetPresenter(customOverlappedPresenter);
 }
 
 winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitActivateWindow()
 {
-	isRunningWaitActivate = true;
+	m_isRunningWaitActivate = true;
 	co_await winrt::resume_background();
 
 	POINT mouse_p;
 	::GetCursorPos(&mouse_p);
-	//while (!(mouse_p.x >= windowRect.X && mouse_p.y >= windowRect.Y))
-	while (!(mouse_p.x >= activateBorderX && mouse_p.y >= windowRect.Y))
+	while (!(mouse_p.x >= m_activateBorderX && mouse_p.y >= m_windowRect.Y))
 	{
 		Sleep(gSleepTime);
 		::GetCursorPos(&mouse_p);
 	}
 
-	co_await wil::resume_foreground(window.DispatcherQueue());
+	co_await wil::resume_foreground(m_window.DispatcherQueue());
 
-	window.Activate();
+	m_window.Activate();
 	Async_WaitHideWindow();
-	isRunningWaitActivate = true;
+	m_isRunningWaitActivate = true;
 }
 
 winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitHideWindow()
 {
-	isRunningWaitHide = true;
+	m_isRunningWaitHide = true;
 	co_await winrt::resume_background();
 
 	POINT mouse_p;
 	::GetCursorPos(&mouse_p);
-	while (mouse_p.x >= windowRect.X && mouse_p.y >= windowRect.Y)
+	while (mouse_p.x >= m_windowRect.X && mouse_p.y >= m_windowRect.Y)
 	{
 		Sleep(gSleepTime);
 		::GetCursorPos(&mouse_p);
 	}
 
-	co_await wil::resume_foreground(window.DispatcherQueue());
+	co_await wil::resume_foreground(m_window.DispatcherQueue());
 
-	appWindow.Hide();
+	m_appWindow.Hide();
 	Async_WaitActivateWindow();
-	isRunningWaitHide = true;
+	m_isRunningWaitHide = true;
 }
 
 winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitAccident()
@@ -134,17 +134,17 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 	while (true)
 	{
 		Sleep(gSleepTimeForAccident);
-		restartFlag = (mouse_p.x >= activateBorderX && mouse_p.y >= windowRect.Y) && !appWindow.IsVisible();
+		restartFlag = (mouse_p.x >= m_activateBorderX && mouse_p.y >= m_windowRect.Y) && !m_appWindow.IsVisible();
 		if (restartFlag)
 			break;
 		::GetCursorPos(&mouse_p);
 	}
 
-	co_await wil::resume_foreground(window.DispatcherQueue());
+	co_await wil::resume_foreground(m_window.DispatcherQueue());
 
-	if (!isRunningWaitActivate)
-		window.Activate();
-	if (!isRunningWaitHide)
+	if (!m_isRunningWaitActivate)
+		m_window.Activate();
+	if (!m_isRunningWaitHide)
 		Async_WaitHideWindow();
 	Async_WaitAccident();
 }

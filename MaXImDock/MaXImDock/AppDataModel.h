@@ -33,18 +33,9 @@ namespace MaXImDockModel
 		AppDataModel operator=(AppDataModel&& other) = delete;
 
 	private:
-        static winrt::RectInt32 s_windowRect; // ウィンドウ表示位置・サイズ情報
-        static ::RECT s_rcDispRect; // ディスプレイDPI情報
-		static ::HWND s_hwnd; // hwnd
-		static winrt::AppWindow s_appWindow; // ウィンドウ情報変更ツール
 		static std::vector<AppIconData> s_appDataList; // appIconデータリスト
 		static std::vector<FolderLink> s_folderLinkList; // folderリンクデータリスト
 	public:
-		static const winrt::RectInt32& GetWindowRect() { return s_windowRect; }
-		static const ::RECT& GetDisplayRect() { return s_rcDispRect; }
-		static const ::HWND& GetHwnd() { return s_hwnd; }
-
-		static winrt::AppWindow& GetAppWindow() { return s_appWindow; }
 		static std::vector<AppIconData>& GetAppIconList() { return s_appDataList; }
 		static std::vector<FolderLink>& GetFolderLinkList() { return s_folderLinkList; }
 
