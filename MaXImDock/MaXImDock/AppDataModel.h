@@ -9,7 +9,7 @@ namespace MaXImDockModel
 	public:
 		winrt::hstring m_exePath = L""; // 実行ファイルの絶対パス
 		winrt::hstring m_iconPath = L""; // 規定フォルダからの相対パス
-		winrt::Image m_appIcon{}; // アイコンイメージコントロール
+		winrt::BitmapImage m_appIcon{}; // アイコンイメージコントロール
 	};
 
 	/// <summary>

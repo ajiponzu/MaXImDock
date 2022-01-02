@@ -3,20 +3,19 @@
 
 namespace winrt::MaXImDock::implementation
 {
-    struct MainWindow : MainWindowT<MainWindow>
-    {
-        MainWindow();
+	struct MainWindow : MainWindowT<MainWindow>
+	{
+		MainWindow();
 
-        int32_t MyProperty();
-        void MyProperty(int32_t value);
-
-        void myButton_Click(Windows::Foundation::IInspectable const& sender, Microsoft::UI::Xaml::RoutedEventArgs const& args);
-    };
+		int32_t MyProperty();
+		void MyProperty(int32_t value);
+		void InitViewControls();
+	};
 }
 
 namespace winrt::MaXImDock::factory_implementation
 {
-    struct MainWindow : MainWindowT<MainWindow, implementation::MainWindow>
-    {
-    };
+	struct MainWindow : MainWindowT<MainWindow, implementation::MainWindow>
+	{
+	};
 }

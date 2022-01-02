@@ -25,7 +25,7 @@ namespace MaXImDockModel
 			co_await picturesfolder.CreateFolderAsync(g_appfolderPath);
 		/* end */
 
-		/* 設定ファイル検索・初期化 */
+		/* 設定ファイル検索・新規作成 */
 		auto appfolder = co_await picturesfolder.GetFolderAsync(g_appfolderPath);
 		auto filesInApp = co_await appfolder.GetFilesAsync();
 		auto notFoundApp = true;
@@ -47,36 +47,29 @@ namespace MaXImDockModel
 		auto texts = co_await winrt::FileIO::ReadTextAsync(appSettingFile);
 		auto appJson = winrt::JsonObject::Parse(texts);
 		auto array = appJson.GetNamedArray(L"array");
-		AppIconData appIconData{};
 		for (const auto& elem : array)
 		{
+			AppIconData appIconData{};
 			auto object = elem.GetObjectW();
 			appIconData.m_exePath = object.GetNamedString(L"exe");
 			appIconData.m_iconPath = object.GetNamedString(L"icon");
+			auto imagefile = co_await appfolder.GetFileAsync(appIconData.m_iconPath);
+			winrt::IRandomAccessStream stream{ co_await imagefile.OpenAsync(winrt::Windows::Storage::FileAccessMode::Read) };
+			appIconData.m_appIcon.SetSource(stream);
 			s_appDataList.push_back(appIconData);
 		}
 
 		auto folderSettingFile = co_await appfolder.GetFileAsync(g_folderSettingPath);
+		texts = co_await winrt::FileIO::ReadTextAsync(folderSettingFile);
+		appJson = winrt::JsonObject::Parse(texts);
 		array = appJson.GetNamedArray(L"array");
-		FolderLink folderLink{};
 		for (const auto& elem : array)
 		{
+			FolderLink folderLink{};
 			auto object = elem.GetObjectW();
 			folderLink.m_linkPath = object.GetNamedString(L"link");
 			folderLink.m_alias = object.GetNamedString(L"alias");
 			s_folderLinkList.push_back(folderLink);
-		}
-
-        winrt::BitmapImage bitmap{};
-		for (const auto& appData : s_appDataList)
-		{
-			auto& icon = appData.m_appIcon;
-			auto imagefile = co_await picturesfolder.GetFileAsync(appData.m_iconPath);
-			winrt::IRandomAccessStream stream{ co_await imagefile.OpenAsync(winrt::Windows::Storage::FileAccessMode::Read) };
-			bitmap.SetSource(stream);
-			icon.Source(bitmap);
-			icon.MaxWidth(65);
-			icon.MaxHeight(65);
 		}
 	}
 }

@@ -74,7 +74,7 @@ void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 {
 	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL);
 	m_activateBorderX = m_rcDispRect.right - 1;
-	m_windowRect.Width = static_cast<int32_t>(m_rcDispRect.right * 0.03);
+	m_windowRect.Width = static_cast<int32_t>(m_rcDispRect.right * 0.045);
 	m_windowRect.Height = static_cast<int32_t>(m_rcDispRect.bottom * 0.6);
 	m_windowRect.X = static_cast<int32_t>(m_rcDispRect.right - m_windowRect.Width * 2);
 	m_windowRect.Y = static_cast<int32_t>(m_rcDispRect.bottom - m_windowRect.Height);
