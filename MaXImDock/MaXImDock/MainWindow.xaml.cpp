@@ -94,7 +94,7 @@ namespace winrt::MaXImDock::implementation
 
 	}
 
-	void MainWindow::ClickOnReloadButton(winrt::IInspectable const& sender, winrt::RoutedEventArgs const& args)
+	void MainWindow::ClickOnReloadButton(winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
 	{
 
 	}
