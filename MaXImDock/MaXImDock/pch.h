@@ -51,4 +51,5 @@ namespace winrt
 	using namespace Windows::Data::Json;
 	using namespace Windows::Storage;
 	using namespace Windows::Storage::Streams;
+	using namespace Windows::UI::Core;
 }

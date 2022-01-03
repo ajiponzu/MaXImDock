@@ -51,10 +51,5 @@ namespace winrt::MaXImDock::implementation
 		/// ウィンドウを非表示にする処理を待機する
 		/// </summary>
 		winrt::Windows::Foundation::IAsyncAction Async_WaitHideWindow();
-
-		/// <summary>
-		/// ウィンドウの表示・非表示が上手くいかないときに対処する処理を待機する
-		/// </summary>
-		winrt::Windows::Foundation::IAsyncAction Async_WaitAccident();
 	};
 }
