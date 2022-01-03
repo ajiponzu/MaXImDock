@@ -37,21 +37,14 @@
                     Background="SteelBlue" />
             </PivotItem>
         </Pivot>
-        <GridView HorizontalAlignment="Right" VerticalAlignment="Bottom">
-            <AppBarButton
-                MinWidth="50"
-                MinHeight="50"
-                MaxWidth="50"
-                MaxHeight="50"
-                Click="ClickOnSettingButton"
-                Icon="Setting" />
-            <AppBarButton
-                MinWidth="50"
-                MinHeight="50"
-                MaxWidth="50"
-                MaxHeight="50"
-                Click="ClickOnReloadButton"
-                Icon="Refresh" />
-        </GridView>
+        <AppBarButton
+            MinWidth="50"
+            MinHeight="50"
+            MaxWidth="50"
+            MaxHeight="50"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Click="ClickOnReloadButton"
+            Icon="Refresh" />
     </StackPanel>
 </Window>

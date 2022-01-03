@@ -9,11 +9,13 @@ namespace MaXImDockModel
 {
 	std::vector<AppIconData> AppDataModel::s_appDataList{};
 	std::vector<FolderLink> AppDataModel::s_folderLinkList{};
+	winrt::hstring AppDataModel::s_userPictureFolderPath = L"";
 
 	winrt::IAsyncAction AppDataModel::ReadSettingJson()
 	{
 		/* Appフォルダ検索・初期化 */
 		auto picturesfolder = winrt::Windows::Storage::KnownFolders::PicturesLibrary();
+		s_userPictureFolderPath = picturesfolder.Path();
 		auto foldersInPictures = co_await picturesfolder.GetFoldersAsync();
 		bool notFound = true;
 		for (const auto& folder : foldersInPictures)
@@ -44,6 +46,8 @@ namespace MaXImDockModel
 		/* end */
 
 		/* アプリアイコン設定ファイル読み込み */
+		if (!s_appDataList.empty())
+			s_appDataList.clear();
 		auto appSettingFile = co_await appfolder.GetFileAsync(g_appSettingPath);
 		auto texts = co_await winrt::FileIO::ReadTextAsync(appSettingFile);
 		auto appJson = winrt::JsonObject::Parse(texts);
@@ -62,6 +66,8 @@ namespace MaXImDockModel
 		/* end */
 
 		/* フォルダリンク設定ファイル読み込み */
+		if (!s_folderLinkList.empty())
+			s_folderLinkList.clear();
 		auto folderSettingFile = co_await appfolder.GetFileAsync(g_folderSettingPath);
 		texts = co_await winrt::FileIO::ReadTextAsync(folderSettingFile);
 		appJson = winrt::JsonObject::Parse(texts);

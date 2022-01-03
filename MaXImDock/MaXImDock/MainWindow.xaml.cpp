@@ -50,6 +50,7 @@ namespace winrt::MaXImDock::implementation
 
 		/* アプリアイコンの設定・設置 */
 		auto items = gridIcons().Items(); // GridViewコントロールのItemCollectionを取得. Appendするとデータも見た目的にも追加される
+		items.Clear();
 		for (const auto& appIcon : MaXImDockModel::AppDataModel::GetAppIconList())
 		{
 			winrt::Button button{};
@@ -73,6 +74,7 @@ namespace winrt::MaXImDock::implementation
 
 		/* フォルダリンク設定・設置 */
 		items = folderLinks().Items();
+		items.Clear();
 		for (const auto& folderLink : MaXImDockModel::AppDataModel::GetFolderLinkList())
 		{
 			const auto& text = (folderLink.m_alias == L"") ? folderLink.m_linkPath : folderLink.m_alias;
@@ -89,13 +91,10 @@ namespace winrt::MaXImDock::implementation
 		/* end */
 	}
 
-	void MainWindow::ClickOnSettingButton(winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
+	winrt::IAsyncAction MainWindow::ClickOnReloadButton(winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
 	{
-
-	}
-
-	void MainWindow::ClickOnReloadButton(winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
-	{
-
+		co_await MaXImDockModel::AppDataModel::ReadSettingJson();
+		
+		InitViewControls();
 	}
 }

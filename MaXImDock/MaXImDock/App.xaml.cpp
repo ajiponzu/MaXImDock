@@ -111,7 +111,7 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 	while (!(mouse_p.x >= m_activateBorderX && mouse_p.y >= m_windowRect.Y))
 	{
 		Sleep(gSleepTime); // スリープタイムは, ただの遅延というだけでなく, CPUを休ませる意味もある
-		::GetCursorPos(&mouse_p); 
+		::GetCursorPos(&mouse_p);
 	}
 	/* end */
 

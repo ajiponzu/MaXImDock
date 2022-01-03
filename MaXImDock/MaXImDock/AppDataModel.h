@@ -35,6 +35,7 @@ namespace MaXImDockModel
 	private:
 		static std::vector<AppIconData> s_appDataList; // appIconデータリスト
 		static std::vector<FolderLink> s_folderLinkList; // folderリンクデータリスト
+		static winrt::hstring s_userPictureFolderPath; // userのピクチャフォルダパス
 	public:
 		static std::vector<AppIconData>& GetAppIconList() { return s_appDataList; }
 		static std::vector<FolderLink>& GetFolderLinkList() { return s_folderLinkList; }
