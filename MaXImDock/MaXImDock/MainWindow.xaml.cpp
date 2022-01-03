@@ -32,6 +32,22 @@ namespace winrt::MaXImDock::implementation
 
 	void MainWindow::InitViewControls()
 	{
+		/* ボタンカラー設定 */
+		winrt::Media::AcrylicBrush brush{};
+		auto color = winrt::Windows::UI::ColorHelper::FromArgb(200, 230, 230, 250);
+		brush.TintColor(color);
+		brush.TintOpacity(0.85);
+		brush.Opacity(0.75);
+		/* end */
+
+		/* ボタン角の丸みを設定 */
+		winrt::CornerRadius cr{};
+		cr.BottomLeft = 20;
+		cr.BottomRight = 20;
+		cr.TopLeft = 20;
+		cr.TopRight = 20;
+		/* end */
+
 		/* アプリアイコンの設定・設置 */
 		auto items = gridIcons().Items(); // GridViewコントロールのItemCollectionを取得. Appendするとデータも見た目的にも追加される
 		for (const auto& appIcon : MaXImDockModel::AppDataModel::GetAppIconList())
@@ -49,6 +65,8 @@ namespace winrt::MaXImDock::implementation
 			image.MaxHeight(65);
 			button.Content(image);
 			button.Click(clickEventHandler); // クリックイベントの登録
+			button.Background(brush);
+			button.CornerRadius(cr);
 			items.Append(button); // GridViewに追加. これを忘れると変更が適用されない
 		}
 		/* end */
@@ -65,8 +83,19 @@ namespace winrt::MaXImDock::implementation
 			};
 			button.Content(box_value(text)); // box_valueはおそらくただの文字列をText系のコントロールに変換してくれると思われる. 
 			button.Click(clickEventHandler);
+			button.Background(brush);
 			items.Append(button);
 		}
 		/* end */
+	}
+
+	void MainWindow::ClickOnSettingButton(winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
+	{
+
+	}
+
+	void MainWindow::ClickOnReloadButton(winrt::IInspectable const& sender, winrt::RoutedEventArgs const& args)
+	{
+
 	}
 }

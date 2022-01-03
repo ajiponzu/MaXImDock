@@ -30,18 +30,22 @@
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Windows.UI.Core.h>
 #include <winrt/Microsoft.UI.Interop.h>
+#include <winrt/Microsoft.UI.Xaml.Controls.AnimatedVisuals.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Search.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.System.h>
 #include <winrt/Windows.Data.Json.h>
+#include <winrt/Windows.UI.h>
 
 namespace winrt
 {
 	using namespace Microsoft::UI;
 	using namespace Microsoft::UI::Xaml;
 	using namespace Microsoft::UI::Xaml::Media::Imaging;
+	using namespace Microsoft::UI::Xaml::Media;
 	using namespace Microsoft::UI::Xaml::Controls;
 	using namespace Microsoft::UI::Xaml::Navigation;
 	using namespace Microsoft::UI::Windowing;
