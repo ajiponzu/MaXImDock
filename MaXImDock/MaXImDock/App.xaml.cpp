@@ -93,7 +93,7 @@ void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 
 void winrt::MaXImDock::implementation::App::SetWindowStyle()
 {
-	OverlappedPresenter overlappedPresenter(0); 
+	OverlappedPresenter overlappedPresenter(0);
 	overlappedPresenter = OverlappedPresenter::CreateForContextMenu();
 	overlappedPresenter.IsAlwaysOnTop(true); // 常に最前面に表示
 	m_appWindow.SetPresenter(overlappedPresenter); // ウィンドウスタイル適用
@@ -106,8 +106,15 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 
 	POINT mouse_p;
 	::GetCursorPos(&mouse_p);
+
+	const auto check_wait_flag = [&]()
+	{
+		return !(mouse_p.x >= m_activateBorderX 
+			&& mouse_p.x <= (m_windowRect.X + m_windowRect.Width * 3) 
+			&& mouse_p.y >= m_windowRect.Y);
+	};
 	/* ビジーウェイト */
-	while (!(mouse_p.x >= m_activateBorderX && mouse_p.y >= m_windowRect.Y))
+	while (check_wait_flag()) // カーソルが範囲内にない限り表示しない
 	{
 		Sleep(gSleepTime); // スリープタイムは, ただの遅延というだけでなく, CPUを休ませる意味もある
 		::GetCursorPos(&mouse_p);
@@ -128,7 +135,14 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 
 	POINT mouse_p;
 	::GetCursorPos(&mouse_p);
-	while (mouse_p.x >= m_windowRect.X && mouse_p.y >= m_windowRect.Y)
+
+	const auto check_wait_flag = [&]()
+	{
+		return mouse_p.x >= m_windowRect.X
+			&& mouse_p.x <= (m_windowRect.X + m_windowRect.Width * 3)
+			&& mouse_p.y >= m_windowRect.Y;
+	};
+	while (check_wait_flag()) // カーソルが範囲内にある限り非表示にしない
 	{
 		Sleep(gSleepTime);
 		::GetCursorPos(&mouse_p);
