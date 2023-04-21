@@ -83,7 +83,7 @@ namespace winrt::MaXImDock::implementation
 			{
 				::ShellExecuteW(0, L"Open", L"explorer.exe", folderLink.m_linkPath.c_str(), L"", SW_SHOW);
 			};
-			button.Content(box_value(text)); // box_valueはおそらくただの文字列をText系のコントロールに変換してくれると思われる. 
+			button.Content(box_value(text)); // box_valueはおそらくただの文字列をText系のコントロールに変換してくれると思われる.
 			button.Click(clickEventHandler);
 			button.Background(brush);
 			items.Append(button);
@@ -94,7 +94,7 @@ namespace winrt::MaXImDock::implementation
 	winrt::IAsyncAction MainWindow::ClickOnReloadButton(winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
 	{
 		co_await MaXImDockModel::AppDataModel::ReadSettingJson();
-		
+
 		InitViewControls();
 	}
 }

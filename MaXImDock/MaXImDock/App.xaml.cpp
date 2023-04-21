@@ -97,6 +97,7 @@ void winrt::MaXImDock::implementation::App::SetWindowStyle()
 	overlappedPresenter = OverlappedPresenter::CreateForContextMenu();
 	overlappedPresenter.IsAlwaysOnTop(true); // 常に最前面に表示
 	m_appWindow.SetPresenter(overlappedPresenter); // ウィンドウスタイル適用
+	m_appWindow.IsShownInSwitchers(false);
 }
 
 winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitActivateWindow()
@@ -109,8 +110,8 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 
 	const auto check_wait_flag = [&]()
 	{
-		return !(mouse_p.x >= m_activateBorderX 
-			&& mouse_p.x <= (m_windowRect.X + m_windowRect.Width * 3) 
+		return !(mouse_p.x >= m_activateBorderX
+			&& mouse_p.x <= (m_windowRect.X + m_windowRect.Width * 3)
 			&& mouse_p.y >= m_windowRect.Y);
 	};
 	/* ビジーウェイト */
