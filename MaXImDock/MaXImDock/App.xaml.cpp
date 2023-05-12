@@ -14,6 +14,8 @@ using namespace Microsoft::UI::Xaml::Navigation;
 using namespace MaXImDock;
 using namespace MaXImDock::implementation;
 
+static constexpr int baseDispWid = 1920;
+static constexpr int baseDispHigh = 1200;
 static constexpr int gSleepTime = 400;
 static constexpr int gSleepTimeForAccident = 2000;
 
@@ -82,12 +84,24 @@ void winrt::MaXImDock::implementation::App::GetAppWindowForCurrentWindow()
 
 void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 {
-	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL); // DPI取得
+	const auto hdc = ::GetDC(m_hwnd);
+
+	const auto x_dpi = ::GetDeviceCaps(hdc, LOGPIXELSX);
+	const auto y_dpi = ::GetDeviceCaps(hdc, LOGPIXELSY);
+	const auto x_dpi_rate = (double)x_dpi / USER_DEFAULT_SCREEN_DPI;
+	const auto y_dpi_rate = (double)y_dpi / USER_DEFAULT_SCREEN_DPI;
+
+	const auto x_disp = ::GetDeviceCaps(hdc, HORZRES);
+	const auto y_disp = ::GetDeviceCaps(hdc, VERTRES);
+	const auto x_disp_rate = (double)x_disp / baseDispWid;
+	const auto y_disp_rate = (double)y_disp / baseDispHigh;
+
+	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL);
 	m_activateBorderX = m_rcDispRect.right - 1;
-	m_windowRect.Width = static_cast<int32_t>(m_rcDispRect.right * 0.045);
-	m_windowRect.Height = static_cast<int32_t>(m_rcDispRect.bottom * 0.6);
-	m_windowRect.X = static_cast<int32_t>(m_rcDispRect.right - m_windowRect.Width * 2);
-	m_windowRect.Y = static_cast<int32_t>(m_rcDispRect.bottom - m_windowRect.Height);
+	m_windowRect.Width = (int32_t)(m_rcDispRect.right * 0.05 * x_dpi_rate / x_disp_rate); // display比率はなぜか割る
+	m_windowRect.Height = (int32_t)(m_rcDispRect.bottom * 0.45 * y_dpi_rate / y_disp_rate);
+	m_windowRect.X = (int32_t)(m_rcDispRect.right - m_windowRect.Width * 1.5);
+	m_windowRect.Y = (int32_t)(m_rcDispRect.bottom - m_windowRect.Height);
 	m_appWindow.MoveAndResize(m_windowRect); // ウィンドウへの変更を適用
 }
 
