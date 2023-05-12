@@ -36,6 +36,10 @@ namespace MaXImDockModel
 		static std::vector<AppIconData> s_appDataList; // appIconデータリスト
 		static std::vector<FolderLink> s_folderLinkList; // folderリンクデータリスト
 		static winrt::hstring s_userPictureFolderPath; // userのピクチャフォルダパス
+
+		static winrt::IAsyncAction ReadAppJson(const winrt::Windows::Storage::StorageFolder& appfolder);
+		static winrt::IAsyncAction ReadFolderJson(const winrt::Windows::Storage::StorageFolder& appfolder);
+
 	public:
 		static std::vector<AppIconData>& GetAppIconList() { return s_appDataList; }
 		static std::vector<FolderLink>& GetFolderLinkList() { return s_folderLinkList; }
