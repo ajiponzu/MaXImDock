@@ -1,10 +1,6 @@
-﻿#include "pch.h"
-
-#include "App.xaml.h"
+﻿#include "App.xaml.h"
 #include "MainWindow.xaml.h"
 #include "AppDataModel.h"
-
-#include <winrt/Microsoft.UI.Interop.h>
 
 using namespace winrt;
 using namespace Windows::Foundation;
