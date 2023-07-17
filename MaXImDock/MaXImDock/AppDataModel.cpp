@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "AppDataModel.h"
 
-static const winrt::hstring g_appfolderPath = L"MaXImDock";
-static const winrt::hstring g_appSettingPath = L"app_setting.json";
-static const winrt::hstring g_folderSettingPath = L"folder_setting.json";
+static const winrt::hstring g_APP_FOLDER_PATH = L"MaXImDock";
+static const winrt::hstring g_APP_SETTING_PATH = L"app_setting.json";
+static const winrt::hstring g_FOLDER_SETTING_PATH = L"folder_setting.json";
 
 namespace MaXImDockModel
 {
@@ -16,23 +16,24 @@ namespace MaXImDockModel
 		/* アプリアイコン設定ファイル読み込み */
 		if (!s_appDataList.empty())
 			s_appDataList.clear();
-		auto appSettingFile = co_await appfolder.GetFileAsync(g_appSettingPath);
-		auto texts = co_await winrt::FileIO::ReadTextAsync(appSettingFile);
+
+		const auto& app_setting_file = co_await appfolder.GetFileAsync(g_APP_SETTING_PATH);
+		const auto& texts = co_await winrt::FileIO::ReadTextAsync(app_setting_file);
 		if (texts.empty())
 			co_return;
 
-		auto appJson = winrt::JsonObject::Parse(texts);
-		auto array = appJson.GetNamedArray(L"array");
-		for (const auto& elem : array)
+		auto app_json = winrt::JsonObject::Parse(texts);
+		auto json_array = app_json.GetNamedArray(L"array");
+		for (const auto& elem : json_array)
 		{
-			AppIconData appIconData{};
-			auto object = elem.GetObjectW();
-			appIconData.m_exePath = object.GetNamedString(L"exe");
-			appIconData.m_iconPath = object.GetNamedString(L"icon");
-			auto imagefile = co_await appfolder.GetFileAsync(appIconData.m_iconPath);
-			winrt::IRandomAccessStream stream{ co_await imagefile.OpenAsync(winrt::Windows::Storage::FileAccessMode::Read) };
-			appIconData.m_appIcon.SetSource(stream);
-			s_appDataList.push_back(appIconData);
+			AppIconData app_icon_data{};
+			const auto object = elem.GetObjectW();
+			app_icon_data.m_exePath = object.GetNamedString(L"exe");
+			app_icon_data.m_iconPath = object.GetNamedString(L"icon");
+			const auto& image_file = co_await appfolder.GetFileAsync(app_icon_data.m_iconPath);
+			winrt::IRandomAccessStream stream{ co_await image_file.OpenAsync(winrt::Windows::Storage::FileAccessMode::Read) };
+			app_icon_data.m_appIcon.SetSource(stream);
+			s_appDataList.push_back(app_icon_data);
 		}
 		/* end */
 	}
@@ -42,20 +43,21 @@ namespace MaXImDockModel
 		/* フォルダリンク設定ファイル読み込み */
 		if (!s_folderLinkList.empty())
 			s_folderLinkList.clear();
-		auto folderSettingFile = co_await appfolder.GetFileAsync(g_folderSettingPath);
-		auto texts = co_await winrt::FileIO::ReadTextAsync(folderSettingFile);
+
+		const auto& folder_setting_file = co_await appfolder.GetFileAsync(g_FOLDER_SETTING_PATH);
+		const auto& texts = co_await winrt::FileIO::ReadTextAsync(folder_setting_file);
 		if (texts.empty())
 			co_return;
 
-		auto appJson = winrt::JsonObject::Parse(texts);
-		auto array = appJson.GetNamedArray(L"array");
-		for (const auto& elem : array)
+		const auto& app_json = winrt::JsonObject::Parse(texts);
+		const auto& json_array = app_json.GetNamedArray(L"array");
+		for (const auto& elem : json_array)
 		{
-			FolderLink folderLink{};
-			auto object = elem.GetObjectW();
-			folderLink.m_linkPath = object.GetNamedString(L"link");
-			folderLink.m_alias = object.GetNamedString(L"alias");
-			s_folderLinkList.push_back(folderLink);
+			FolderLink folder_link{};
+			const auto object = elem.GetObjectW();
+			folder_link.m_linkPath = object.GetNamedString(L"link");
+			folder_link.m_alias = object.GetNamedString(L"alias");
+			s_folderLinkList.push_back(folder_link);
 		}
 		/* end */
 	}
@@ -63,38 +65,40 @@ namespace MaXImDockModel
 	winrt::IAsyncAction AppDataModel::ReadSettingJson()
 	{
 		/* Appフォルダ検索・初期化 */
-		auto picturesfolder = winrt::Windows::Storage::KnownFolders::PicturesLibrary();
-		s_userPictureFolderPath = picturesfolder.Path();
-		auto foldersInPictures = co_await picturesfolder.GetFoldersAsync();
-		bool notFound = true;
-		for (const auto& folder : foldersInPictures)
+		auto pictures_folder = winrt::Windows::Storage::KnownFolders::PicturesLibrary();
+		s_userPictureFolderPath = pictures_folder.Path();
+
+		const auto& folders_in_pictures = co_await pictures_folder.GetFoldersAsync();
+		bool not_found = true;
+		for (const auto& folder : folders_in_pictures)
 		{
-			if (folder.Name() == g_appfolderPath)
-				notFound = false;
+			if (folder.Name() == g_APP_FOLDER_PATH)
+				not_found = false;
 		}
-		if (notFound)
-			co_await picturesfolder.CreateFolderAsync(g_appfolderPath);
+		if (not_found)
+			co_await pictures_folder.CreateFolderAsync(g_APP_FOLDER_PATH);
 		/* end */
 
 		/* 設定ファイル検索・新規作成 */
-		auto appfolder = co_await picturesfolder.GetFolderAsync(g_appfolderPath);
-		auto filesInApp = co_await appfolder.GetFilesAsync();
-		auto notFoundApp = true;
-		auto notFoundFolder = true;
-		for (const auto& file : filesInApp)
+		const auto& app_folder = co_await pictures_folder.GetFolderAsync(g_APP_FOLDER_PATH);
+		const auto& files_in_app = co_await app_folder.GetFilesAsync();
+		auto not_found_app = true;
+		auto not_found_folder = true;
+
+		for (const auto& file : files_in_app)
 		{
-			if (file.Name() == g_appSettingPath)
-				notFoundApp = false;
-			if (file.Name() == g_folderSettingPath)
-				notFoundFolder = false;
+			if (file.Name() == g_APP_SETTING_PATH)
+				not_found_app = false;
+			if (file.Name() == g_FOLDER_SETTING_PATH)
+				not_found_folder = false;
 		}
-		if (notFoundApp)
-			co_await appfolder.CreateFileAsync(g_appSettingPath);
-		if (notFoundFolder)
-			co_await appfolder.CreateFileAsync(g_folderSettingPath);
+		if (not_found_app)
+			co_await app_folder.CreateFileAsync(g_APP_SETTING_PATH);
+		if (not_found_folder)
+			co_await app_folder.CreateFileAsync(g_FOLDER_SETTING_PATH);
 		/* end */
 
-		co_await ReadAppJson(appfolder);
-		co_await ReadFolderJson(appfolder);
+		co_await ReadAppJson(app_folder);
+		co_await ReadFolderJson(app_folder);
 	}
 }

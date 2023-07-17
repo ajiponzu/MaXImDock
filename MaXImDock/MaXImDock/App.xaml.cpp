@@ -14,10 +14,9 @@ using namespace Microsoft::UI::Xaml::Navigation;
 using namespace MaXImDock;
 using namespace MaXImDock::implementation;
 
-static constexpr int baseDispWid = 1920;
-static constexpr int baseDispHigh = 1200;
-static constexpr int gSleepTime = 400;
-static constexpr int gSleepTimeForAccident = 2000;
+static constexpr int g_BASE_DISP_WID = 1920;
+static constexpr int g_BASE_DISP_HIGH = 1200;
+static constexpr int g_SLEEP_TIME = 400;
 
 /// <summary>
 /// Initializes the singleton application object.  This is the first line of authored code
@@ -53,33 +52,38 @@ winrt::IAsyncAction winrt::MaXImDock::implementation::App::InitSystem()
 {
 	co_await MaXImDockModel::AppDataModel::ReadSettingJson(); // これがそのまま非同期実行されると, UI表示のタイミングとかぶるなどの危険があるため待つ
 
+	InitWindow(true);
+}
+
+void winrt::MaXImDock::implementation::App::InitWindow(const bool& is_waited_activate)
+{
 	m_window = make<MainWindow>();
+	const auto closed_handler = [&](winrt::IInspectable const& /*sender*/, winrt::WindowEventArgs const& /*args*/)
+	{
+		InitWindow(false);
+	};
+	m_window.Closed(closed_handler);
+
 	GetAppWindowForCurrentWindow();
 	SetWindowStyle();
 	SetWindowSizeAndPos();
 
-	Async_WaitActivateWindow();
+	if (is_waited_activate)
+		Async_WaitActivateWindow();
+	else
+	{
+		m_window.Activate();
+		Async_WaitHideWindow();
+	}
 }
 
 void winrt::MaXImDock::implementation::App::GetAppWindowForCurrentWindow()
 {
-	winrt::com_ptr<IWindowNative> windowNative = m_window.as<IWindowNative>(); // win32ネイティブウィンドウの取得
+	winrt::com_ptr<IWindowNative> window_native = m_window.as<IWindowNative>(); // win32ネイティブウィンドウの取得
 
-	windowNative->get_WindowHandle(&m_hwnd); // ウィンドウハンドル取得
-	winrt::WindowId windowId;
-	windowId = winrt::GetWindowIdFromWindow(m_hwnd);
-	m_appWindow = Microsoft::UI::Windowing::AppWindow::GetFromWindowId(windowId); // ウィンドウハンドルとWinUIとの橋渡し?を構築
-	auto visibilityEventHandler = [&](winrt::IInspectable const& /*sender*/, winrt::WindowVisibilityChangedEventArgs const& /*args*/)
-	{
-		if (m_window.Visible())
-			return;
-		else
-		{
-			if (m_isRunningWaitActivate)
-				m_window.Activate();
-		}
-	};
-	m_window.VisibilityChanged(visibilityEventHandler);
+	window_native->get_WindowHandle(&m_hwnd); // ウィンドウハンドル取得
+	const auto window_id = winrt::GetWindowIdFromWindow(m_hwnd);
+	m_appWindow = Microsoft::UI::Windowing::AppWindow::GetFromWindowId(window_id); // ウィンドウハンドルとWinUIとの橋渡し?を構築
 }
 
 void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
@@ -93,8 +97,8 @@ void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 
 	const auto x_disp = ::GetDeviceCaps(hdc, HORZRES);
 	const auto y_disp = ::GetDeviceCaps(hdc, VERTRES);
-	const auto x_disp_rate = (double)x_disp / baseDispWid;
-	const auto y_disp_rate = (double)y_disp / baseDispHigh;
+	const auto x_disp_rate = (double)x_disp / g_BASE_DISP_WID;
+	const auto y_disp_rate = (double)y_disp / g_BASE_DISP_HIGH;
 
 	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL);
 	m_activateBorderX = m_rcDispRect.right - 1;
@@ -107,10 +111,10 @@ void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 
 void winrt::MaXImDock::implementation::App::SetWindowStyle()
 {
-	OverlappedPresenter overlappedPresenter(0);
-	overlappedPresenter = OverlappedPresenter::CreateForContextMenu();
-	overlappedPresenter.IsAlwaysOnTop(true); // 常に最前面に表示
-	m_appWindow.SetPresenter(overlappedPresenter); // ウィンドウスタイル適用
+	OverlappedPresenter overlapped_presenter(0);
+	overlapped_presenter = OverlappedPresenter::CreateForContextMenu();
+	overlapped_presenter.IsAlwaysOnTop(true); // 常に最前面に表示
+	m_appWindow.SetPresenter(overlapped_presenter); // ウィンドウスタイル適用
 	m_appWindow.IsShownInSwitchers(false);
 }
 
@@ -125,18 +129,21 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 	const auto check_wait_flag = [&]()
 	{
 		return !(mouse_p.x >= m_activateBorderX
-			&& mouse_p.x <= (m_windowRect.X + m_windowRect.Width * 3)
 			&& mouse_p.y >= m_windowRect.Y);
 	};
 	/* ビジーウェイト */
 	while (check_wait_flag()) // カーソルが範囲内にない限り表示しない
 	{
-		Sleep(gSleepTime); // スリープタイムは, ただの遅延というだけでなく, CPUを休ませる意味もある
+		Sleep(g_SLEEP_TIME); // スリープタイムは, ただの遅延というだけでなく, CPUを休ませる意味もある
 		::GetCursorPos(&mouse_p);
 	}
 	/* end */
 
 	co_await wil::resume_foreground(m_window.DispatcherQueue()); // バックグラウンド処理を終了. UIを操作可能に
+
+	// メインディスプレイ変更時の表示位置を修正する処理
+	if (m_appWindow.Position().X < 0)
+		m_window.Close();
 
 	m_window.Activate(); // 条件を満たしたためウィンドウを表示
 	Async_WaitHideWindow(); // ウィンドウ非表示待ち処理を起動
@@ -154,16 +161,19 @@ winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::
 	const auto check_wait_flag = [&]()
 	{
 		return mouse_p.x >= m_windowRect.X
-			&& mouse_p.x <= (m_windowRect.X + m_windowRect.Width * 3)
 			&& mouse_p.y >= m_windowRect.Y;
 	};
 	while (check_wait_flag()) // カーソルが範囲内にある限り非表示にしない
 	{
-		Sleep(gSleepTime);
+		Sleep(g_SLEEP_TIME);
 		::GetCursorPos(&mouse_p);
 	}
 
 	co_await wil::resume_foreground(m_window.DispatcherQueue());
+
+	// メインディスプレイ変更時の表示位置を修正する処理
+	if (m_appWindow.Position().X < 0)
+		m_window.Close();
 
 	m_appWindow.Hide();
 	Async_WaitActivateWindow();

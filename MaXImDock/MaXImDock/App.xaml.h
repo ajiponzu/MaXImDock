@@ -28,6 +28,11 @@ namespace winrt::MaXImDock::implementation
 		winrt::IAsyncAction InitSystem();
 
 		/// <summary>
+		/// ウィンドウ初期化部
+		/// </summary>
+		void InitWindow(const bool& is_waited_activate);
+
+		/// <summary>
 		/// ウィンドウ処理のためのメンバを初期化
 		/// </summary>
 		void GetAppWindowForCurrentWindow();

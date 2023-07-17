@@ -51,21 +51,21 @@ namespace winrt::MaXImDock::implementation
 		/* アプリアイコンの設定・設置 */
 		auto items = gridIcons().Items(); // GridViewコントロールのItemCollectionを取得. Appendするとデータも見た目的にも追加される
 		items.Clear();
-		for (const auto& appIcon : MaXImDockModel::AppDataModel::GetAppIconList())
+		for (const auto& app_icon : MaXImDockModel::AppDataModel::GetAppIconList())
 		{
 			winrt::Button button{};
 			/* クリックイベントのラムダ式を定義 */ // 簡単に書けるだけでなく, 処理の自由度も高い
-			auto clickEventHandler = [&](winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
+			auto click_handler = [&](winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
 			{
-				::ShellExecuteW(0, L"Open", L"explorer.exe", appIcon.m_exePath.c_str(), L"", SW_SHOW);
+				::ShellExecuteW(0, L"Open", L"explorer.exe", app_icon.m_exePath.c_str(), L"", SW_SHOW);
 			};
 			/* end */
 			Image image{};
-			image.Source(appIcon.m_appIcon); // 保存していたbitmapimageをソースとする. Imageはコントロールのため, sharedできないのでbitmapまでを作成し保存した
+			image.Source(app_icon.m_appIcon); // 保存していたbitmapimageをソースとする. Imageはコントロールのため, sharedできないのでbitmapまでを作成し保存した
 			image.MaxWidth(65);
 			image.MaxHeight(65);
 			button.Content(image);
-			button.Click(clickEventHandler); // クリックイベントの登録
+			button.Click(click_handler); // クリックイベントの登録
 			button.Background(brush);
 			button.CornerRadius(cr);
 			items.Append(button); // GridViewに追加. これを忘れると変更が適用されない
@@ -75,16 +75,16 @@ namespace winrt::MaXImDock::implementation
 		/* フォルダリンク設定・設置 */
 		items = folderLinks().Items();
 		items.Clear();
-		for (const auto& folderLink : MaXImDockModel::AppDataModel::GetFolderLinkList())
+		for (const auto& folder_link : MaXImDockModel::AppDataModel::GetFolderLinkList())
 		{
-			const auto& text = (folderLink.m_alias == L"") ? folderLink.m_linkPath : folderLink.m_alias;
+			const auto& text = (folder_link.m_alias == L"") ? folder_link.m_linkPath : folder_link.m_alias;
 			winrt::Button button{};
-			auto clickEventHandler = [&](winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
+			auto click_handler = [&](winrt::IInspectable const& /*sender*/, winrt::RoutedEventArgs const& /*args*/)
 			{
-				::ShellExecuteW(0, L"Open", L"explorer.exe", folderLink.m_linkPath.c_str(), L"", SW_SHOW);
+				::ShellExecuteW(0, L"Open", L"explorer.exe", folder_link.m_linkPath.c_str(), L"", SW_SHOW);
 			};
 			button.Content(box_value(text)); // box_valueはおそらくただの文字列をText系のコントロールに変換してくれると思われる.
-			button.Click(clickEventHandler);
+			button.Click(click_handler);
 			button.Background(brush);
 			items.Append(button);
 		}
@@ -95,6 +95,6 @@ namespace winrt::MaXImDock::implementation
 	{
 		co_await MaXImDockModel::AppDataModel::ReadSettingJson();
 
-		InitViewControls();
+		MainWindow::Close();
 	}
 }
