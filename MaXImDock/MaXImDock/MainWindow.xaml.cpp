@@ -49,8 +49,8 @@ namespace winrt::MaXImDock::implementation
 		/* end */
 
 		/* アプリアイコンの設定・設置 */
-		auto items = gridIcons().Items(); // GridViewコントロールのItemCollectionを取得. Appendするとデータも見た目的にも追加される
-		items.Clear();
+		auto app_items = gridIcons().Items(); // GridViewコントロールのItemCollectionを取得. Appendするとデータも見た目的にも追加される
+		app_items.Clear();
 		for (const auto& app_icon : MaXImDockModel::AppDataModel::GetAppIconList())
 		{
 			winrt::Button button{};
@@ -68,13 +68,13 @@ namespace winrt::MaXImDock::implementation
 			button.Click(click_handler); // クリックイベントの登録
 			button.Background(brush);
 			button.CornerRadius(cr);
-			items.Append(button); // GridViewに追加. これを忘れると変更が適用されない
+			app_items.Append(button); // GridViewに追加. これを忘れると変更が適用されない
 		}
 		/* end */
 
 		/* フォルダリンク設定・設置 */
-		items = folderLinks().Items();
-		items.Clear();
+		auto folder_items = folderLinks().Items();
+		folder_items.Clear();
 		for (const auto& folder_link : MaXImDockModel::AppDataModel::GetFolderLinkList())
 		{
 			const auto& text = (folder_link.m_alias == L"") ? folder_link.m_linkPath : folder_link.m_alias;
@@ -86,7 +86,7 @@ namespace winrt::MaXImDock::implementation
 			button.Content(box_value(text)); // box_valueはおそらくただの文字列をText系のコントロールに変換してくれると思われる.
 			button.Click(click_handler);
 			button.Background(brush);
-			items.Append(button);
+			folder_items.Append(button);
 		}
 		/* end */
 	}
@@ -95,6 +95,6 @@ namespace winrt::MaXImDock::implementation
 	{
 		co_await MaXImDockModel::AppDataModel::ReadSettingJson();
 
-		MainWindow::Close();
+		InitViewControls();
 	}
 }

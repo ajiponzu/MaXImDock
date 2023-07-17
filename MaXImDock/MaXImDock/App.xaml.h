@@ -9,12 +9,8 @@ namespace winrt::MaXImDock::implementation
 	private:
 		winrt::RectInt32 m_windowRect{}; // ウィンドウの座標・サイズ
 		::RECT m_rcDispRect{}; // ディスプレイのDPI情報
-		bool m_isRunningWaitActivate = false; // WaitActivateWindowが起動しているか?
-		bool m_isRunningWaitHide = false; // WaitHideWindowが起動しているか?
 		int m_activateBorderX = 0; // ウィンドウ表示の際の座標境界
 		winrt::Microsoft::UI::Xaml::Window m_window{ nullptr }; // ウィンドウ
-		winrt::AppWindow m_appWindow{ nullptr }; // ウィンドウを変更するための構造体
-		::HWND m_hwnd{ nullptr }; // ウィンドウハンドル
 	public:
 		App();
 
@@ -30,12 +26,7 @@ namespace winrt::MaXImDock::implementation
 		/// <summary>
 		/// ウィンドウ初期化部
 		/// </summary>
-		void InitWindow(const bool& is_waited_activate);
-
-		/// <summary>
-		/// ウィンドウ処理のためのメンバを初期化
-		/// </summary>
-		void GetAppWindowForCurrentWindow();
+		void InitWindow();
 
 		/// <summary>
 		/// ウィンドウの表示位置・サイズを調整
@@ -46,6 +37,16 @@ namespace winrt::MaXImDock::implementation
 		/// ウィンドウのスタイルを設定
 		/// </summary>
 		void SetWindowStyle();
+
+		/// <summary>
+		/// カーソル座標の侵入判定を行う
+		/// </summary>
+		bool CheckCursorEntered(const ::POINT& cursor_pos);
+
+		/// <summary>
+		/// カーソル座標とウィンドウとの当たり判定を行う
+		/// </summary>
+		bool CheckCursorOnWindow(const ::POINT& cursor_pos);
 
 		/// <summary>
 		/// ウィンドウを表示する処理を待機する

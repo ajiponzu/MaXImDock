@@ -34,6 +34,7 @@ namespace MaXImDockModel
 			winrt::IRandomAccessStream stream{ co_await image_file.OpenAsync(winrt::Windows::Storage::FileAccessMode::Read) };
 			app_icon_data.m_appIcon.SetSource(stream);
 			s_appDataList.push_back(app_icon_data);
+			stream.Close();
 		}
 		/* end */
 	}
