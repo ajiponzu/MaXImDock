@@ -14,9 +14,6 @@ namespace MaXImDockModel
 	winrt::IAsyncAction AppDataModel::ReadAppJson(const winrt::Windows::Storage::StorageFolder& appfolder)
 	{
 		/* アプリアイコン設定ファイル読み込み */
-		if (!s_appDataList.empty())
-			s_appDataList.clear();
-
 		const auto& app_setting_file = co_await appfolder.GetFileAsync(g_APP_SETTING_PATH);
 		const auto& texts = co_await winrt::FileIO::ReadTextAsync(app_setting_file);
 		if (texts.empty())
@@ -42,9 +39,6 @@ namespace MaXImDockModel
 	winrt::IAsyncAction AppDataModel::ReadFolderJson(const winrt::Windows::Storage::StorageFolder& appfolder)
 	{
 		/* フォルダリンク設定ファイル読み込み */
-		if (!s_folderLinkList.empty())
-			s_folderLinkList.clear();
-
 		const auto& folder_setting_file = co_await appfolder.GetFileAsync(g_FOLDER_SETTING_PATH);
 		const auto& texts = co_await winrt::FileIO::ReadTextAsync(folder_setting_file);
 		if (texts.empty())
@@ -65,6 +59,8 @@ namespace MaXImDockModel
 
 	winrt::IAsyncAction AppDataModel::ReadSettingJson()
 	{
+		ClearData();
+
 		/* Appフォルダ検索・初期化 */
 		auto pictures_folder = winrt::Windows::Storage::KnownFolders::PicturesLibrary();
 		s_userPictureFolderPath = pictures_folder.Path();
@@ -101,5 +97,13 @@ namespace MaXImDockModel
 
 		co_await ReadAppJson(app_folder);
 		co_await ReadFolderJson(app_folder);
+	}
+
+	void AppDataModel::ClearData()
+	{
+		if (!s_appDataList.empty())
+			s_appDataList.clear();
+		if (!s_folderLinkList.empty())
+			s_folderLinkList.clear();
 	}
 }

@@ -40,6 +40,7 @@ namespace MaXImDockModel
 		static winrt::IAsyncAction ReadAppJson(const winrt::Windows::Storage::StorageFolder& appfolder);
 		static winrt::IAsyncAction ReadFolderJson(const winrt::Windows::Storage::StorageFolder& appfolder);
 
+		static void ClearData();
 	public:
 		static std::vector<AppIconData>& GetAppIconList() { return s_appDataList; }
 		static std::vector<FolderLink>& GetFolderLinkList() { return s_folderLinkList; }

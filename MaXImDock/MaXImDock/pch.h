@@ -3,10 +3,6 @@
 #define NOMINMAX
 #include <windows.h>
 
-#include <unknwn.h>
-#include <restrictederrorinfo.h>
-#include <hstring.h>
-
 // Undefine GetCurrentTime macro to prevent
 // conflict with Storyboard::GetCurrentTime
 #undef GetCurrentTime
@@ -33,7 +29,6 @@
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Windows.UI.Core.h>
 #include <winrt/Microsoft.UI.Interop.h>
-#include <winrt/Microsoft.UI.Xaml.Controls.AnimatedVisuals.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Windows.Storage.h>
 #include <winrt/Windows.Storage.Search.h>
@@ -41,7 +36,6 @@
 #include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.System.h>
 #include <winrt/Windows.Data.Json.h>
-#include <winrt/Windows.UI.h>
 
 namespace winrt
 {
@@ -58,5 +52,4 @@ namespace winrt
 	using namespace Windows::Data::Json;
 	using namespace Windows::Storage;
 	using namespace Windows::Storage::Streams;
-	using namespace Windows::UI::Core;
 }

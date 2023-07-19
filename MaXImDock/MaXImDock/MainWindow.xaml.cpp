@@ -10,10 +10,12 @@ using namespace Microsoft::UI::Xaml;
 
 namespace winrt::MaXImDock::implementation
 {
+	uint8_t MainWindow::s_idGenerator = 0;
+
 	MainWindow::MainWindow()
 	{
 		InitializeComponent();
-		InitViewControls();
+		Init();
 	}
 
 	int32_t MainWindow::MyProperty()
@@ -24,6 +26,16 @@ namespace winrt::MaXImDock::implementation
 	void MainWindow::MyProperty(int32_t /* value */)
 	{
 		throw hresult_not_implemented();
+	}
+
+	winrt::IAsyncAction MainWindow::Init()
+	{
+		s_idGenerator = (s_idGenerator + 1) % 10;
+		m_id = s_idGenerator;
+		SelfClose();
+
+		co_await MaXImDockModel::AppDataModel::ReadSettingJson();
+		InitViewControls();
 	}
 
 	void MainWindow::InitViewControls()
@@ -92,5 +104,14 @@ namespace winrt::MaXImDock::implementation
 		co_await MaXImDockModel::AppDataModel::ReadSettingJson();
 
 		InitViewControls();
+	}
+
+	winrt::IAsyncAction MainWindow::SelfClose()
+	{
+		co_await winrt::resume_background();
+		while (m_id == s_idGenerator)
+			::Sleep(3000);
+		co_await wil::resume_foreground(this->DispatcherQueue());
+		this->Close();
 	}
 }

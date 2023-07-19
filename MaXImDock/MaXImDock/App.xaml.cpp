@@ -2,6 +2,8 @@
 #include "MainWindow.xaml.h"
 #include "AppDataModel.h"
 
+#include <WinUser.h>
+
 using namespace winrt;
 using namespace Windows::Foundation;
 using namespace Microsoft::UI::Xaml;
@@ -9,10 +11,15 @@ using namespace Microsoft::UI::Xaml::Controls;
 using namespace Microsoft::UI::Xaml::Navigation;
 using namespace MaXImDock;
 using namespace MaXImDock::implementation;
+using namespace std::chrono_literals;
 
 static constexpr int g_BASE_DISP_WID = 1920;
 static constexpr int g_BASE_DISP_HIGH = 1200;
 static constexpr int g_SLEEP_TIME = 400;
+static constexpr double g_INCH_PER_MILLIMETER = 25.4;
+
+static bool g_is_resized = false;
+static bool g_is_resizing = false;
 
 /// <summary>
 /// Initializes the singleton application object.  This is the first line of authored code
@@ -41,24 +48,44 @@ App::App()
 /// <param name="e">Details about the launch request and process.</param>
 void App::OnLaunched(LaunchActivatedEventArgs const&)
 {
-	InitSystem();
+	InitWindow();
 }
 
 winrt::IAsyncAction winrt::MaXImDock::implementation::App::InitSystem()
 {
-	co_await MaXImDockModel::AppDataModel::ReadSettingJson(); // これがそのまま非同期実行されると, UI表示のタイミングとかぶるなどの危険があるため待つ
+	co_await MaXImDockModel::AppDataModel::ReadSettingJson();
 
 	InitWindow();
 }
 
 void winrt::MaXImDock::implementation::App::InitWindow()
 {
+	if (g_is_resizing && !g_is_resized)
+		return;
+
 	m_window = make<MainWindow>();
 
 	SetWindowStyle();
 	SetWindowSizeAndPos();
-	m_window.Activate();
-	Async_WaitHideWindow();
+	m_window.AppWindow().MoveAndResize(m_windowRect);
+
+	const auto size_changed_handler = [&](winrt::IInspectable const& /*sender*/, winrt::Microsoft::UI::Xaml::WindowSizeChangedEventArgs const& /*args*/)
+	{
+		g_is_resizing = true;
+
+		if (!g_is_resized)
+			g_is_resized = true;
+		else
+			g_is_resized = false;
+
+		m_windowActivateHandlerStatus.Close();
+		::Sleep(g_SLEEP_TIME);
+		InitWindow();
+		g_is_resizing = false;
+	};
+	m_window.SizeChanged(size_changed_handler);
+
+	m_windowActivateHandlerStatus = IAsyncAction{ Async_WindowActivateHandler() };
 }
 
 void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
@@ -66,25 +93,19 @@ void winrt::MaXImDock::implementation::App::SetWindowSizeAndPos()
 	::HWND hwnd = nullptr;
 	winrt::com_ptr<IWindowNative> window_native = m_window.as<IWindowNative>(); // win32ネイティブウィンドウの取得
 	window_native->get_WindowHandle(&hwnd); // ウィンドウハンドル取得
-	const auto hdc = ::GetDC(hwnd);
 
-	const auto x_dpi = ::GetDeviceCaps(hdc, LOGPIXELSX);
-	const auto y_dpi = ::GetDeviceCaps(hdc, LOGPIXELSY);
-	const auto x_dpi_rate = (double)x_dpi / USER_DEFAULT_SCREEN_DPI;
-	const auto y_dpi_rate = (double)y_dpi / USER_DEFAULT_SCREEN_DPI;
-
-	const auto x_disp = ::GetDeviceCaps(hdc, HORZRES);
-	const auto y_disp = ::GetDeviceCaps(hdc, VERTRES);
-	const auto x_disp_rate = (double)x_disp / g_BASE_DISP_WID;
-	const auto y_disp_rate = (double)y_disp / g_BASE_DISP_HIGH;
+	// 取得するdpiはhwndのパラメータなので，同一hwndでのdpi変化は感知しない. だからwindowを作り直す
+	const auto dpi_rate = (double)::GetDpiForWindow(hwnd) / USER_DEFAULT_SCREEN_DPI;
 
 	::SystemParametersInfo(SPI_GETWORKAREA, NULL, &m_rcDispRect, NULL);
+	const auto x_disp_rate = (double)m_rcDispRect.right / g_BASE_DISP_WID;
+	const auto y_disp_rate = (double)m_rcDispRect.bottom / g_BASE_DISP_HIGH;
+
 	m_activateBorderX = m_rcDispRect.right - 1;
-	m_windowRect.Width = (int32_t)(m_rcDispRect.right * 0.05 * x_dpi_rate / x_disp_rate); // display比率はなぜか割る
-	m_windowRect.Height = (int32_t)(m_rcDispRect.bottom * 0.45 * y_dpi_rate / y_disp_rate);
-	m_windowRect.X = (int32_t)(m_rcDispRect.right - m_windowRect.Width * 1.5);
+	m_windowRect.Width = (int32_t)((double)m_rcDispRect.right * 0.075 * dpi_rate / x_disp_rate); // display比率はなぜか割る
+	m_windowRect.Height = (int32_t)((double)m_rcDispRect.bottom * 0.45 * dpi_rate / y_disp_rate);
+	m_windowRect.X = (int32_t)(m_activateBorderX - m_windowRect.Width);
 	m_windowRect.Y = (int32_t)(m_rcDispRect.bottom - m_windowRect.Height);
-	m_window.AppWindow().MoveAndResize(m_windowRect); // ウィンドウへの変更を適用
 }
 
 void winrt::MaXImDock::implementation::App::SetWindowStyle()
@@ -116,56 +137,49 @@ bool winrt::MaXImDock::implementation::App::CheckCursorOnWindow(const::POINT& cu
 	return is_on_window;
 }
 
-winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitActivateWindow()
+bool winrt::MaXImDock::implementation::App::CheckWindowPosIncorrective()
 {
-	co_await winrt::resume_background(); // これとforegroundの間の処理はバックグラウンドで処理される.
+	const auto app_window_pos = m_window.AppWindow().Position();
+	const auto is_incorrect =
+		app_window_pos.X < m_rcDispRect.left
+		|| app_window_pos.X > m_rcDispRect.right
+		|| app_window_pos.Y < m_rcDispRect.top
+		|| app_window_pos.Y > m_rcDispRect.bottom;
 
-	::POINT cursor_pos;
-	::GetCursorPos(&cursor_pos);
-
-	/* ビジーウェイト */
-	while (true)
-	{
-		if (CheckCursorEntered(cursor_pos))
-			break;
-
-		Sleep(g_SLEEP_TIME); // スリープタイムは遅延だけでなく, CPUを休ませる意味もある
-		::GetCursorPos(&cursor_pos);
-	}
-	/* end */
-
-	co_await wil::resume_foreground(m_window.DispatcherQueue()); // バックグラウンド処理を終了. UIを操作可能に
-
-	// メインディスプレイ変更時の表示位置を修正する処理
-	if (m_window.AppWindow().Position().X < 0)
-	{
-		InitWindow();
-		co_return;
-	}
-
-	m_window.Activate(); // 条件を満たしたためウィンドウを表示
-	co_await Async_WaitHideWindow(); // ウィンドウ非表示待ち処理を起動
-
-	co_return;
+	return is_incorrect;
 }
 
-winrt::Windows::Foundation::IAsyncAction winrt::MaXImDock::implementation::App::Async_WaitHideWindow()
+winrt::IAsyncAction winrt::MaXImDock::implementation::App::Async_WindowActivateHandler()
 {
 	co_await winrt::resume_background();
 
+	bool is_waited_activate = false;
+
 	::POINT cursor_pos;
 	::GetCursorPos(&cursor_pos);
 
-	while (CheckCursorOnWindow(cursor_pos)) // カーソルが範囲内にある限り非表示にしない
+	while (true)
 	{
-		Sleep(g_SLEEP_TIME);
+		::Sleep(g_SLEEP_TIME);
 		::GetCursorPos(&cursor_pos);
+		SetWindowSizeAndPos();
+
+		if (is_waited_activate && CheckCursorEntered(cursor_pos))
+		{
+			co_await wil::resume_foreground(m_window.DispatcherQueue());
+			if (CheckWindowPosIncorrective())
+				m_window.AppWindow().MoveAndResize(winrt::RectInt32{1, 1, 1, 1});
+			else
+				m_window.Activate();
+			co_await winrt::resume_background();
+			is_waited_activate = false;
+		}
+		else if (!CheckCursorOnWindow(cursor_pos))
+		{
+			co_await wil::resume_foreground(m_window.DispatcherQueue());
+			m_window.AppWindow().Hide();
+			co_await winrt::resume_background();
+			is_waited_activate = true;
+		}
 	}
-
-	co_await wil::resume_foreground(m_window.DispatcherQueue());
-
-	m_window.AppWindow().Hide();
-	co_await Async_WaitActivateWindow();
-
-	co_return;
 }

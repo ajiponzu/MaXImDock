@@ -11,13 +11,13 @@ namespace winrt::MaXImDock::implementation
 		::RECT m_rcDispRect{}; // ディスプレイのDPI情報
 		int m_activateBorderX = 0; // ウィンドウ表示の際の座標境界
 		winrt::Microsoft::UI::Xaml::Window m_window{ nullptr }; // ウィンドウ
+		winrt::IAsyncAction m_windowActivateHandlerStatus{ winrt::IAsyncAction() };
 	public:
 		App();
 
 		void OnLaunched(Microsoft::UI::Xaml::LaunchActivatedEventArgs const&);
 
 	private:
-
 		/// <summary>
 		/// 非同期的にシステム起動処理. co_awaitにより, 実行順を制御
 		/// </summary>
@@ -49,13 +49,13 @@ namespace winrt::MaXImDock::implementation
 		bool CheckCursorOnWindow(const ::POINT& cursor_pos);
 
 		/// <summary>
-		/// ウィンドウを表示する処理を待機する
+		/// ウィンドウ表示位置が正しいか検証する
 		/// </summary>
-		winrt::Windows::Foundation::IAsyncAction Async_WaitActivateWindow();
+		bool CheckWindowPosIncorrective();
 
 		/// <summary>
-		/// ウィンドウを非表示にする処理を待機する
+		/// ウィンドウの表示・非表示処理を待機する
 		/// </summary>
-		winrt::Windows::Foundation::IAsyncAction Async_WaitHideWindow();
+		winrt::IAsyncAction Async_WindowActivateHandler();
 	};
 }
